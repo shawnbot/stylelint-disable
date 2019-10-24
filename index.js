@@ -48,38 +48,45 @@ module.exports = function stylelintDisable(options) {
 }
 
 function addDisableComment(node, rules) {
-  const {nodes} = node.parent
-  const previous = nodes[nodes.indexOf(node) - 1]
-  if (previous && previous.type === 'comment') {
-    const match = previous.text.match(DISABLE_COMMENT_PATTERN)
+  const {parent} = node
+  const sameLine = parent.source && parent.source.start.line === node.source.start.line
+  let comment = previousSiblingComment(node)
+  if (comment) {
+    const match = comment.text.match(DISABLE_COMMENT_PATTERN)
     if (match) {
       const [, pragma, existingRuleString] = match
       const existingRules = existingRuleString.split(/ *, */).map(trim)
       const ruleSet = new Set(existingRules.concat(rules).map(trim))
-      previous.text = `${pragma} ${Array.from(ruleSet).join(', ')}`
+      comment.text = `${pragma} ${Array.from(ruleSet).join(', ')}`
       // console.warn(`updated comment: "${previous.text}"`)
       return
     } else {
-      // console.warn(`previous comment is not a disable: "${previous.text}"`)
+      console.warn(`adjacent comment is not a disable: "${comment.text}"`)
     }
   }
-  const sameLine = Math.max(node.parent.source.start.line, node.parent.source.end.line) === node.source.start.line
-  const pragma = sameLine ? DISABLE_PRAGMA_LINE : DISABLE_PRAGMA_NEXT_LINE
+
+  const pragma = DISABLE_PRAGMA_NEXT_LINE
   const ruleString = Array.from(rules).join(', ')
-  const comment = postcss.comment({
+  comment = postcss.comment({
     text: `${pragma} ${ruleString}${sameLine ? ' ' : ''}`,
     raws: {
-      inline: !sameLine,
-      before: node.raws.before,
+      inline: true,
+      before: sameLine ? parent.raws.before : node.raws.before,
       after: sameLine ? ' ' : ''
     }
   })
   console.warn(`inserting: "${comment.text}"`)
   if (sameLine) {
-    node.parent.insertAfter(node, comment)
+    parent.parent.insertBefore(parent, comment)
   } else {
     node.parent.insertBefore(node, comment)
   }
+}
+
+function previousSiblingComment(node) {
+  const {nodes} = node.parent
+  const previous = nodes[nodes.indexOf(node) - 1]
+  return previous && previous.type === 'comment' ? previous : undefined
 }
 
 function trim(str) {
