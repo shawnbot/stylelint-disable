@@ -36,7 +36,12 @@ stylelintDisable({rules, files}).then(results => {
   for (const {source, root, disabled} of results) {
     console.warn(`Writing ${disabled} disables to ${source}...`)
     if (!dryRun) {
-      writeFileSync(source, root.toString(), 'utf8')
+      let css = root.toString()
+      // XXX: this is a fix for some trailing spaces in comments that show up
+      // even though we set {raws: {after: ''}} in the comment node
+      // :thinking_face:
+      css = css.replace(/ +\n/g, '\n')
+      writeFileSync(source, css, 'utf8')
     }
   }
 })
