@@ -2,8 +2,9 @@ const anymatch = require('anymatch')
 const postcss = require('postcss')
 const stylelint = require('stylelint')
 
-const DISABLE_PRAGMA = 'stylelint-disable-next-line'
-const DISABLE_COMMENT_PATTERN = new RegExp(`(${DISABLE_PRAGMA}) +(.+)`)
+const DISABLE_PRAGMA_LINE = 'stylelint-disable-line'
+const DISABLE_PRAGMA_NEXT_LINE = 'stylelint-disable-next-line'
+const DISABLE_COMMENT_PATTERN = new RegExp(`(${DISABLE_PRAGMA_LINE}|${DISABLE_PRAGMA_NEXT_LINE}) +(.+)`)
 
 module.exports = function stylelintDisable(options) {
   const {rules = '*'} = options
@@ -61,14 +62,18 @@ function addDisableComment(node, rules) {
       // console.warn(`previous comment is not a disable: "${previous.text}"`)
     }
   }
+  const inline = node.parent.source.start.line < node.source.start.line
+  const pragma = inline ? DISABLE_PRAGMA_NEXT_LINE : DISABLE_PRAGMA_LINE
   const comment = postcss.comment({
-    text: `${DISABLE_PRAGMA} ${Array.from(rules).join(', ')}`,
+    text: `${pragma} ${Array.from(rules).join(', ')}${inline ? '' : ' '}`,
     raws: {
-      inline: true,
-      before: node.raws.before,
-      after: '\n'
+      inline,
+      before: node.raws.before
     }
   })
-  // console.warn(`inserted: "${comment.text}"`)
-  node.parent.insertBefore(node, comment)
+  if (inline) {
+    node.parent.insertBefore(node, comment)
+  } else {
+    node.parent.insertAfter(node, comment)
+  }
 }
