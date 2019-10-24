@@ -53,8 +53,9 @@ function addDisableComment(node, rules) {
   if (previous && previous.type === 'comment') {
     const match = previous.text.match(DISABLE_COMMENT_PATTERN)
     if (match) {
-      const [, pragma, existingRules] = match
-      const ruleSet = new Set(existingRules.split(/ *, */).concat(rules))
+      const [, pragma, existingRuleString] = match
+      const existingRules = existingRuleString.split(/ *, */).map(trim)
+      const ruleSet = new Set(existingRules.concat(rules).map(trim))
       previous.text = `${pragma} ${Array.from(ruleSet).join(', ')}`
       // console.warn(`updated comment: "${previous.text}"`)
       return
@@ -62,18 +63,25 @@ function addDisableComment(node, rules) {
       // console.warn(`previous comment is not a disable: "${previous.text}"`)
     }
   }
-  const inline = node.parent.source.start.line < node.source.start.line
-  const pragma = inline ? DISABLE_PRAGMA_NEXT_LINE : DISABLE_PRAGMA_LINE
+  const sameLine = Math.max(node.parent.source.start.line, node.parent.source.end.line) === node.source.start.line
+  const pragma = sameLine ? DISABLE_PRAGMA_LINE : DISABLE_PRAGMA_NEXT_LINE
+  const ruleString = Array.from(rules).join(', ')
   const comment = postcss.comment({
-    text: `${pragma} ${Array.from(rules).join(', ')}${inline ? '' : ' '}`,
+    text: `${pragma} ${ruleString}${sameLine ? ' ' : ''}`,
     raws: {
-      inline,
-      before: node.raws.before
+      inline: !sameLine,
+      before: node.raws.before,
+      after: sameLine ? ' ' : ''
     }
   })
-  if (inline) {
-    node.parent.insertBefore(node, comment)
-  } else {
+  console.warn(`inserting: "${comment.text}"`)
+  if (sameLine) {
     node.parent.insertAfter(node, comment)
+  } else {
+    node.parent.insertBefore(node, comment)
   }
+}
+
+function trim(str) {
+  return str.trim()
 }
