@@ -52,7 +52,7 @@ function addDisableComment(node, rules) {
   if (previous && previous.type === 'comment') {
     const match = previous.text.match(DISABLE_COMMENT_PATTERN)
     if (match) {
-      const [, pragma, existingRuleString] = match
+      const [, pragma, existingRules] = match
       const ruleSet = new Set(existingRules.split(/ *, */).concat(rules))
       previous.text = `${pragma} ${Array.from(ruleSet).join(', ')}`
       // console.warn(`updated comment: "${previous.text}"`)
