@@ -1,0 +1,28 @@
+{
+  "name": "stylelint-disable",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "stylelint-disable": "cli.js"
+  },
+  "scripts": {
+    "test": "jest --passWithNoTests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "anymatch": "^3.1.1",
+    "minimist": "^1.2.0"
+  },
+  "peerDependencies": {
+    "postcss": ">=7",
+    "stylelint": ">=11"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "postcss": "^7.0.18",
+    "stylelint": "^11.1.1"
+  }
+}
