@@ -1,7 +1,7 @@
 {
   "name": "stylelint-disable",
   "version": "0.1.4",
-  "description": "",
+  "license": "MIT",
   "main": "index.js",
   "bin": {
     "stylelint-disable": "cli.js"
@@ -10,9 +10,6 @@
     "lint": "github-lint",
     "test": "jest --passWithNoTests"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "anymatch": "^3.1.1",
     "minimist": "^1.2.0"
