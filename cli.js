@@ -33,10 +33,10 @@ if (files.length === 0) {
 }
 
 stylelintDisable({rules, files}).then(results => {
-  for (const {source, root, disabled} of results) {
+  for (const {source, root, disabled, syntax} of results) {
     console.warn(`Writing ${disabled} disables to ${source}...`)
     if (!dryRun) {
-      let css = root.toString()
+      let css = root.toString(syntax)
       // XXX: this is a fix for some trailing spaces in comments that show up
       // even though we set {raws: {after: ''}} in the comment node
       // :thinking_face:

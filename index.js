@@ -38,7 +38,8 @@ module.exports = function stylelintDisable(options) {
         results.push({
           source,
           root,
-          disabled
+          disabled,
+          syntax: result.opts.syntax,
         })
       }
     }
